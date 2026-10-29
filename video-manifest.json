@@ -95,10 +95,10 @@
       "approved": true,
       "approvedBy": "user, 2026-10-29 (탈모인터뷰 주영주원장님 인터뷰 최종안을 섹션으로)",
       "section": "S06 interview",
-      "source": "Desktop/조은의원 유튜브/탈모인터뷰 주영주원장님 인터뷰 최종안.mp4 (3840x2160 29.97fps 5:46.9, 761MB, 병원 실사 인터뷰). 원본이 커서 프로젝트에는 복사하지 않음",
+      "source": "Desktop/조은의원 유튜브/탈모인터뷰 주영주원장님 인터뷰 최종안1.mp4 (2026-10-29 자막 수정본, 3840x2160 29.97fps 5:46.9, 761MB, 병원 실사 인터뷰). 원본이 커서 프로젝트에는 복사하지 않음",
       "subtitles": "../영상_원본/interview-subtitles.txt (최종자막.txt, 초안 기준 시간)",
       "outputs": [
-        "videos/interview.mp4 (1280x720 crf26 maxrate 1.8M, AAC 96k, 23MB, faststart, preload=none)",
+        "videos/interview.mp4 (1280x720 crf26 maxrate 1.8M, AAC 96k, 22MB, faststart, preload=none)",
         "videos/interview-poster.webp (30.2s, 1280x720)",
         "videos/interview-poster-640.webp"
       ],
