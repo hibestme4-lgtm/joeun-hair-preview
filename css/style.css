@@ -362,17 +362,35 @@ html:not(.js) .hl { background-size: 100% 100%; }
   background: #fff;
   box-shadow: 0 18px 40px rgba(0, 0, 0, .3);
 }
-.stages-card img { width: 100%; height: auto; }
+/* 세 칸에 같은 그림을 1/3씩: 그림을 칸 너비의 3배로 두고 칸 번호(--i)만큼 왼쪽으로 밀어 해당 블록만 보이게 */
+.stages-card { display: grid; grid-template-columns: repeat(3, 1fr); aspect-ratio: 960 / 631; }
+.stages-cell { position: relative; overflow: hidden; }
+.stages-cell img { position: absolute; top: 0; left: calc(var(--i) * -100%); width: 300%; max-width: none; height: 100%; }
 .js .stages-card { opacity: 0; transform: translateY(16px); transition: opacity .7s var(--ease-out), transform .7s var(--ease-out); }
 .js .prepare.is-in .stages-card { opacity: 1; transform: none; }
+/* 카드가 반쯤 보이면(is-staged) 굵은 모발 → 가늘어진 모발 → 솜털 순서로 하나씩 올라옴, 아래 이름표도 같이 */
+.js .stages-cell { opacity: 0; transform: translateY(22px) scale(.92); transition: opacity .55s ease-out, transform .75s cubic-bezier(.34, 1.4, .64, 1); transition-delay: calc(.15s + var(--i) * .55s); }
+.js .prepare.is-staged .stages-cell { opacity: 1; transform: none; }
+.js .stage { opacity: 0; transform: translateY(8px); transition: opacity .5s ease-out, transform .5s var(--ease-out); }
+.js .stage:nth-child(1) { transition-delay: .35s; }
+.js .stage:nth-child(2) { transition-delay: .9s; }
+.js .stage:nth-child(3) { transition-delay: 1.45s; }
+.js .prepare.is-staged .stage { opacity: 1; transform: none; }
 .stages { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
 .stage { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .stage b { font-size: 14px; font-weight: 800; }
 .stage span { font-size: 12px; color: rgba(255, 255, 255, .55); }
 .stages-bar { height: 4px; margin: 18px 6% 0; border-radius: 4px; background: rgba(255, 255, 255, .12); overflow: hidden; }
 .stages-bar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #E2C48C, #B8965A 55%, rgba(184, 150, 90, .25)); transform-origin: left; }
-.js .stages-bar i { transform: scaleX(0); transition: transform 1.6s var(--ease-out) .2s; }
-.js .prepare.is-in .stages-bar i { transform: none; }
+.js .stages-bar i { transform: scaleX(0); }
+/* 블록이 하나 나올 때마다 1/3씩 참 (블록 등장 0.15·0.7·1.25초 + 0.6초에 맞춤) */
+.js .prepare.is-staged .stages-bar i { animation: stages-fill 2.2s ease-in-out .15s both; }
+@keyframes stages-fill { /* 1/3: 0.75초, 2/3: 1.3초, 끝: 2.0초 (세 번째 블록이 다 올라온 때) */
+  0% { transform: scaleX(0); }
+  27% { transform: scaleX(.34); }
+  52% { transform: scaleX(.67); }
+  84%, 100% { transform: scaleX(1); }
+}
 .prepare-copy { margin-top: 30px; font-size: 16px; line-height: 1.7; color: rgba(255, 255, 255, .75); }
 .prepare-copy b { color: #fff; font-weight: 700; }
 .prepare-strong { margin-top: 18px; font-size: 25px; line-height: 1.4; font-weight: 900; letter-spacing: -.03em; }
@@ -942,7 +960,8 @@ html.is-locked { overflow: hidden; }
   .js .worries-result { border: 0; background: none; }
   .js .worry .worry-check { background: var(--gold-deep); border-color: var(--gold-deep); transition: none; }
   .js .worry .worry-check::after { transform: rotate(-45deg) scale(1); transition: none; }
-  .js .stages-bar i, .js .stages-card { opacity: 1; transform: none; transition: none; }
+  .js .stages-bar i, .js .stages-card, .js .stages-cell, .js .stage { opacity: 1; transform: none; transition: none; }
+  .js .prepare.is-staged .stages-bar i { animation: none; }
   .js .path-step, .js .path-steps::after { opacity: 1; transform: none; transition: none; }
   .js .path.is-in .path-step.is-goal .path-dot { animation: none; }
   .consult-cap.is-swap, .js .why-note.is-in .why-map-glow, .interview-play-icon::before, .lead[open], .lead::backdrop { animation: none; }

@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
   <link rel="preload" as="image" href="videos/hero-character-loop-poster.webp" fetchpriority="high">
   <!-- ?v=: 배포할 때마다 scripts/bump-version.mjs가 올림 (GitHub Pages가 CSS·JS를 10분간 저장해 옛 파일이 섞이는 것 방지) -->
-  <link rel="stylesheet" href="css/style.css?v=20261029-1912">
+  <link rel="stylesheet" href="css/style.css?v=20261029-1950">
   <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
@@ -89,7 +89,7 @@
         </div>
 
         <p class="dr-ba-quote">“제가 직접 겪었고,<br><b>지금 이렇게 관리하고 있습니다.</b>”</p>
-        <p class="dr-ba-notice">※ 원장 본인의 사례이며, 결과는 개인에 따라 다를 수 있습니다. 시술 후 붓기·통증 등의 부작용이 생길 수 있습니다. 전후 사진은 자르기 외 보정을 하지 않았습니다.</p>
+        <p class="dr-ba-notice">※ 원장 본인의 사례이며, 결과는 개인에 따라 다를 수 있습니다.<br>※ 시술 후 붓기·통증 등의 부작용이 생길 수 있습니다.<br>※ 전후 사진은 자르기 외 보정을 하지 않았습니다.</p>
       </section>
 
       <!-- S03 원장의 탈모 여정: 5단계 가로 타임라인 (선이 그려지며 점이 차례로 켜짐) -->
@@ -210,8 +210,11 @@
         <h2 class="prepare-title" id="prepare-title">탈모는 어느 날<br>갑자기 생기지 않습니다</h2>
 
         <!-- 3단계 단면 그림 1장 (블록이 각 열 가운데에 오도록 잘라 둠) + 아래 3열 라벨 -->
+        <!-- 같은 그림을 세 칸에 1/3씩 보여 주고 차례로 올라오게 함 (파일은 한 번만 받음) -->
         <div class="stages-card">
-          <img src="images/s02-stages.webp" srcset="images/s02-stages-480.webp 480w, images/s02-stages.webp 960w" sizes="(max-width: 480px) calc(100vw - 40px), 440px" width="960" height="631" alt="모발이 가늘어지는 3단계: 굵은 모발의 큰 모낭, 가늘어진 모발의 작아진 모낭, 솜털 같은 모발의 아주 작은 모낭" loading="lazy" decoding="async">
+          <span class="stages-cell" style="--i: 0"><img src="images/s02-stages.webp" srcset="images/s02-stages-480.webp 480w, images/s02-stages.webp 960w" sizes="(max-width: 480px) calc(100vw - 40px), 440px" width="960" height="631" alt="모발이 가늘어지는 3단계: 굵은 모발의 큰 모낭, 가늘어진 모발의 작아진 모낭, 솜털 같은 모발의 아주 작은 모낭" loading="lazy" decoding="async"></span>
+          <span class="stages-cell" style="--i: 1"><img src="images/s02-stages.webp" srcset="images/s02-stages-480.webp 480w, images/s02-stages.webp 960w" sizes="(max-width: 480px) calc(100vw - 40px), 440px" width="960" height="631" alt="" loading="lazy" decoding="async"></span>
+          <span class="stages-cell" style="--i: 2"><img src="images/s02-stages.webp" srcset="images/s02-stages-480.webp 480w, images/s02-stages.webp 960w" sizes="(max-width: 480px) calc(100vw - 40px), 440px" width="960" height="631" alt="" loading="lazy" decoding="async"></span>
         </div>
         <ol class="stages" aria-label="모발이 가늘어지는 단계">
           <li class="stage"><b>굵은 모발</b><span>건강한 모낭</span></li>
@@ -442,6 +445,6 @@
       </div>
     </dialog>
   </div>
-  <script src="js/main.js?v=20261029-1912" defer></script>
+  <script src="js/main.js?v=20261029-1950" defer></script>
 </body>
 </html>

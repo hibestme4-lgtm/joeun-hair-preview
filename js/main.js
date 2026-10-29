@@ -262,6 +262,8 @@
   /* 미리 준비 밴드 등장 */
   const prepare = document.querySelector('.prepare');
   onceVisible(prepare, () => prepare.classList.add('is-in'), { threshold: 0.3 });
+  // 3단계 그림은 카드가 반쯤 보일 때 하나씩 (밴드 등장 때 시작하면 화면 아래에서 이미 지나가 버림)
+  onceVisible(prepare.querySelector('.stages-card'), () => prepare.classList.add('is-staged'), { threshold: 0.5 });
 
   /* S03 원장 여정: 화면에 들어오면 선이 그려지며 단계가 차례로 켜짐 */
   const path = document.querySelector('.path');
