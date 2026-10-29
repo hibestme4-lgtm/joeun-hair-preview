@@ -17,6 +17,9 @@
   --gutter: 20px;
   --page-max: 480px;
   --header-h: 56px;
+  --title-light: 24px; /* 섹션 제목 크기 통일: 가는 줄 */
+  --title-bold: 30px;  /* 굵은 줄 */
+  --title-solo: 28px;  /* 한 가지 굵기로만 된 제목 (히어로·원장 전후·마지막 멘트는 따로) */
   --cta-h: 80px; /* 하단 고정 상담 버튼 영역 높이 */
   --radius-card: 16px;
   --shadow-gold: 0 12px 30px rgba(184, 150, 90, .35);
@@ -74,23 +77,6 @@ h1, p { margin: 0; }
 }
 .header-call svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
 .header-call:active { transform: scale(.97); }
-
-/* ── 버튼 ───────────────────────────── */
-.btn {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  width: 100%; height: 58px;
-  border-radius: 999px;
-  font-size: 17px; font-weight: 800; letter-spacing: -.01em;
-  transition: transform .2s var(--ease-out), box-shadow .2s;
-}
-.btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-.btn-gold { background: var(--gold-grad); color: var(--text); box-shadow: var(--shadow-gold); }
-.btn:active { transform: scale(.98); }
-@media (hover: hover) {
-  .btn-gold:hover { box-shadow: 0 16px 36px rgba(184, 150, 90, .45); }
-  .btn-gold:hover svg { transform: translateX(3px); }
-  .btn svg { transition: transform .2s var(--ease-out); }
-}
 
 /* ── S01 히어로 ─────────────────────── */
 .hero {
@@ -176,7 +162,8 @@ video.hero-media { z-index: 1; }
 .js .hero.is-in .bubble { animation: bubble-in .55s var(--ease-out) forwards; }
 .js .hero.is-in .bubble-1 { animation-delay: .3s; }
 .js .hero.is-in .bubble-2 { animation-delay: .9s; }
-.js .hero.is-in .bubble-3 { animation: bubble-in .55s var(--ease-out) 1.5s forwards, bubble-nudge 3.2s ease-in-out 2.4s infinite; }
+.js .hero.is-in .bubble-3 { animation: bubble-in .55s var(--ease-out) 1.5s forwards, bubble-nudge 3.2s ease-in-out 2.4s 4; } /* 4번만 들썩이고 멈춤 */
+.js .hero.is-in:not(.is-live) .bubble-3 { animation-play-state: paused; } /* 히어로가 화면 밖이면 멈춤 */
 @keyframes bubble-in { to { opacity: 1; transform: none; } }
 @keyframes bubble-nudge { 0%, 86%, 100% { transform: none; } 92% { transform: translateY(-3px); } }
 
@@ -199,8 +186,7 @@ html:not(.js) .hl { background-size: 100% 100%; }
   background: var(--soft);
   text-align: center;
 }
-.worries-eyebrow { font-size: 11.2px; font-weight: 900; letter-spacing: .15em; color: var(--gold-ink); }
-.worries-title { margin: 0; font-size: 26px; line-height: 1.3; font-weight: 900; letter-spacing: -.03em; }
+.worries-title { margin: 0; font-size: var(--title-solo); line-height: 1.3; font-weight: 900; letter-spacing: -.03em; }
 .worry-list { display: grid; gap: 10px; margin-top: 24px; }
 .worry {
   display: flex; align-items: center; gap: 12px;
@@ -253,11 +239,9 @@ html:not(.js) .hl { background-size: 100% 100%; }
 @keyframes rise { to { opacity: 1; transform: none; } }
 
 /* ── S02 탈모 원리 ──────────────────── */
-.eyebrow { font-size: 11.2px; font-weight: 900; letter-spacing: .15em; color: var(--gold-ink); }
-.eyebrow-light { color: #D9BC85; }
 .why { padding: 64px var(--gutter) 56px; text-align: center; }
-.why-title { margin: 0; font-size: 24px; line-height: 1.38; font-weight: 400; letter-spacing: -.03em; }
-.why-title strong { display: inline-block; margin-top: 2px; font-size: 29px; font-weight: 900; }
+.why-title { margin: 0; font-size: var(--title-light); line-height: 1.38; font-weight: 400; letter-spacing: -.03em; }
+.why-title strong { display: inline-block; margin-top: 2px; font-size: var(--title-bold); font-weight: 900; }
 .why-lead { margin-top: 14px; font-size: 15px; line-height: 1.7; color: var(--muted); }
 .why-lead b { color: var(--text); font-weight: 700; }
 
@@ -307,9 +291,10 @@ html:not(.js) .hl { background-size: 100% 100%; }
   font-size: 12px; font-weight: 600; white-space: nowrap;
   opacity: clamp(0, calc(1 - var(--p) * 4), 1);
 }
-.cmp-hint::after { content: "↓"; animation: next-bob 1.4s ease-in-out infinite; }
+.cmp-hint::after { content: "↓"; animation: next-bob 1.4s ease-in-out infinite paused; }
+/* 그림이 화면에 있고 안내가 아직 보일 때만 까딱임 (안내가 사라진 뒤에도 돌던 것 막음) */
+.cmp-scene.is-live .cmp-frame[data-state="normal"] .cmp-hint::after { animation-play-state: running; }
 @keyframes next-bob { 50% { transform: translateY(3px); } }
-.why-media figcaption { margin-top: 10px; font-size: 12px; color: var(--muted-2); }
 
 .why-steps { margin: 26px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; text-align: left; }
 .why-step {
@@ -369,7 +354,7 @@ html:not(.js) .hl { background-size: 100% 100%; }
   color: #fff;
   text-align: center;
 }
-.prepare-title { margin: 0; font-size: 27px; line-height: 1.35; font-weight: 900; letter-spacing: -.03em; }
+.prepare-title { margin: 0; font-size: var(--title-solo); line-height: 1.35; font-weight: 900; letter-spacing: -.03em; }
 .stages-card {
   margin-top: 30px;
   border-radius: 20px;
@@ -451,7 +436,10 @@ html:not(.js) .hl { background-size: 100% 100%; }
   cursor: ew-resize;
 }
 .ba-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-.ba-after { clip-path: inset(0 0 0 var(--pos)); }
+/* 자르기를 clip-path 대신 transform으로: 틀은 오른쪽으로, 안의 사진은 같은 만큼 왼쪽으로 밀어 제자리에 둠.
+   clip-path는 움직일 때마다 사진을 다시 그려서 휴대폰에서 버벅였음. transform은 GPU가 합성만 함 */
+.ba-after { position: absolute; inset: 0; overflow: hidden; transform: translate3d(var(--pos), 0, 0); will-change: transform; pointer-events: none; }
+.ba-after .ba-img { transform: translate3d(calc(-1 * var(--pos)), 0, 0); will-change: transform; }
 .ba-tag {
   position: absolute; top: 14px; z-index: 2;
   display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
@@ -461,11 +449,13 @@ html:not(.js) .hl { background-size: 100% 100%; }
 .ba-tag b { font-size: 13.5px; letter-spacing: .01em; }
 .ba-tag { transition: opacity .25s, transform .25s var(--ease-out); }
 .ba-tag.is-hidden { opacity: 0; transform: scale(.92); }
-.ba-tag-before { left: 14px; background: rgba(28, 25, 22, .72); color: rgba(255, 255, 255, .85); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.ba-tag-before { left: 14px; background: rgba(28, 25, 22, .8); color: rgba(255, 255, 255, .85); } /* 흐림(backdrop-filter)은 밑 사진이 움직일 때마다 다시 계산돼 뺌 */
 .ba-tag-after { right: 14px; align-items: flex-end; background: var(--gold-grad); color: var(--text); }
-.ba-line { position: absolute; top: 0; bottom: 0; left: var(--pos); z-index: 2; width: 2px; margin-left: -1px; background: #fff; pointer-events: none; }
+/* 경계선: left를 바꾸면 매번 배치 계산이 일어나므로, 전체 폭 틀을 transform으로 밀고 선은 틀의 왼쪽 끝에 둠 */
+.ba-line { position: absolute; inset: 0; z-index: 2; transform: translate3d(var(--pos), 0, 0); will-change: transform; pointer-events: none; }
+.ba-line::before { content: ""; position: absolute; top: 0; bottom: 0; left: -1px; width: 2px; background: #fff; }
 .ba-line i {
-  position: absolute; top: 50%; left: 50%;
+  position: absolute; top: 50%; left: 0;
   width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%;
   background: #fff; box-shadow: 0 6px 18px rgba(0, 0, 0, .3);
 }
@@ -485,8 +475,8 @@ html:not(.js) .hl { background-size: 100% 100%; }
 
 /* ── S03 원장의 탈모 여정 (가로 5단계) ── */
 .journey { padding: 64px var(--gutter) 60px; text-align: center; }
-.journey-title { margin: 0; font-size: 22px; line-height: 1.4; font-weight: 400; letter-spacing: -.03em; }
-.journey-title strong { font-size: 27px; font-weight: 900; }
+.journey-title { margin: 0; font-size: var(--title-light); line-height: 1.38; font-weight: 400; letter-spacing: -.03em; }
+.journey-title strong { display: inline-block; margin-top: 2px; font-size: var(--title-bold); font-weight: 900; }
 .path {
   --dot: 34px;
   margin-top: 30px; padding: 20px 10px 22px;
@@ -543,8 +533,8 @@ html:not(.js) .hl { background-size: 100% 100%; }
   background: radial-gradient(closest-side, rgba(184, 150, 90, .16), rgba(184, 150, 90, 0));
   pointer-events: none;
 }
-.consult-title { margin: 14px 0 0; font-size: 24px; line-height: 1.38; font-weight: 400; letter-spacing: -.03em; }
-.consult-title strong { display: inline-block; margin-top: 2px; font-size: 30px; font-weight: 900; }
+.consult-title { margin: 14px 0 0; font-size: var(--title-light); line-height: 1.38; font-weight: 400; letter-spacing: -.03em; }
+.consult-title strong { display: inline-block; margin-top: 2px; font-size: var(--title-bold); font-weight: 900; }
 .consult-lead { margin-top: 14px; font-size: 16px; line-height: 1.65; color: var(--muted); }
 .consult-lead b { color: var(--text); font-weight: 800; }
 
@@ -584,7 +574,6 @@ html:not(.js) .hl { background-size: 100% 100%; }
 @keyframes cap-swap { from { opacity: 0; transform: translateY(8px); } }
 .consult-video.has-controls .consult-cap { bottom: 64px; } /* 재생 막대 위로 */
 .consult-video.has-controls::after { height: 62%; }
-.consult-media figcaption { margin-top: 10px; font-size: 12px; color: var(--muted-2); }
 
 .consult-quote {
   display: flex; flex-direction: row-reverse; align-items: center; gap: 18px; /* 사진 오른쪽, 멘트 왼쪽 */
@@ -614,8 +603,8 @@ html:not(.js) .hl { background-size: 100% 100%; }
 /* ── S05 조은의원 둘러보기 ──────────── */
 .tour { padding: 64px 0 56px; background: var(--soft); text-align: center; }
 .tour-chip { margin: 0 var(--gutter); }
-.tour-title { margin: 14px var(--gutter) 0; font-size: 24px; line-height: 1.38; font-weight: 400; letter-spacing: -.03em; }
-.tour-title strong { display: inline-block; margin-top: 2px; font-size: 30px; font-weight: 900; }
+.tour-title { margin: 14px var(--gutter) 0; font-size: var(--title-light); line-height: 1.38; font-weight: 400; letter-spacing: -.03em; }
+.tour-title strong { display: inline-block; margin-top: 2px; font-size: var(--title-bold); font-weight: 900; }
 
 .tour-scene { margin-top: 28px; }
 .tour-sticky { overflow: hidden; position: relative; }
@@ -663,7 +652,7 @@ html:not(.js) .hl { background-size: 100% 100%; }
 .tour-card.is-active { transform: scale(1); opacity: 1; }
 .tour-card img { width: 100%; aspect-ratio: 4 / 3; height: auto; object-fit: cover; display: block; pointer-events: none; }
 .tour-text { padding: 18px 20px 20px; }
-.tour-text b { display: block; font-size: 19px; font-weight: 800; letter-spacing: -.02em; color: var(--ink); }
+.tour-text b { display: block; font-size: 19px; font-weight: 800; letter-spacing: -.02em; color: var(--text); }
 .tour-text p { margin-top: 6px; font-size: 15px; line-height: 1.6; letter-spacing: -.02em; color: #5A5248; }
 
 
@@ -681,10 +670,10 @@ html:not(.js) .hl { background-size: 100% 100%; }
   background: radial-gradient(closest-side, rgba(184, 150, 90, .26), rgba(184, 150, 90, 0));
   pointer-events: none;
 }
-.interview-title { margin: 0; font-size: 24px; line-height: 1.38; font-weight: 300; letter-spacing: -.035em; }
+.interview-title { margin: 0; font-size: var(--title-light); line-height: 1.38; font-weight: 300; letter-spacing: -.035em; }
 .interview-title strong {
   display: inline-block; margin-top: 2px;
-  font-size: 31px; font-weight: 900;
+  font-size: var(--title-bold); font-weight: 900;
   background: linear-gradient(100deg, #F3DDB0 0%, #E2C48C 40%, #C6A66C 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
@@ -713,14 +702,20 @@ html:not(.js) .hl { background-size: 100% 100%; }
   width: 64px; height: 64px; border-radius: 50%;
   background: var(--gold-grad);
   box-shadow: 0 0 0 8px rgba(184, 150, 90, .25), var(--shadow-gold);
-  animation: play-ring 2.4s ease-out infinite;
 }
+/* 퍼지는 고리: box-shadow를 움직이면 매 프레임 다시 그려서(초당 86번) transform·opacity로 바꿈. 화면에 보일 때만 */
+.interview-play-icon::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: 50%;
+  background: rgba(184, 150, 90, .45);
+  animation: play-ring 2.4s ease-out infinite paused;
+}
+.interview-player.is-live .interview-play-icon::before { animation-play-state: running; }
 .interview-play-icon::after { /* 삼각형 */
   content: ""; position: absolute; left: 50%; top: 50%; translate: -36% -50%;
   border-style: solid; border-width: 11px 0 11px 18px;
   border-color: transparent transparent transparent var(--text);
 }
-@keyframes play-ring { 0% { box-shadow: 0 0 0 0 rgba(184, 150, 90, .45), var(--shadow-gold); } 70%, 100% { box-shadow: 0 0 0 16px rgba(184, 150, 90, 0), var(--shadow-gold); } }
+@keyframes play-ring { 0% { transform: scale(1); opacity: 1; } 70%, 100% { transform: scale(1.5); opacity: 0; } }
 .interview-play-time {
   position: absolute; right: 12px; bottom: 12px;
   padding: 3px 9px; border-radius: 999px;
@@ -759,7 +754,6 @@ html:not(.js) .hl { background-size: 100% 100%; }
   .interview-chapters button:hover { background: rgba(255, 255, 255, .09); }
 }
 
-/* ── 푸터 ───────────────────────────── */
 /* ── S07 마지막 멘트 (스크롤 글자 채우기) ── */
 .closing { padding: 96px var(--gutter) 104px; background: var(--bg); text-align: center; }
 /* 크기 3단계: 제목 30 > 맺음말 21 > 설명 18. 금색은 "남아 있는"·"조은의원" 두 곳만 */
@@ -773,12 +767,29 @@ html:not(.js) .hl { background-size: 100% 100%; }
 .js [data-fill] .fill-ch { transition: color .3s ease-out; }
 .js [data-fill] .fill-ch:not(.is-on) { color: #DDD5C9; } /* 아직 안 채워진 글자 */
 
+/* ── 푸터 ───────────────────────────── */
 .site-footer {
   padding: 40px var(--gutter) calc(36px + var(--cta-h) + env(safe-area-inset-bottom)); /* 하단 고정 버튼에 가리지 않게 */
   background: var(--text); color: #fff;
   border-top: 1px solid rgba(255, 255, 255, .08);
 }
 .footer-logo { width: 156px; height: auto; }
+/* 진료시간 카드: 푸터 맨 위, 금색 제목 + 요일별 줄 */
+.footer-hours {
+  margin-top: 28px; padding: 20px 20px 18px;
+  border: 1px solid rgba(226, 196, 140, .28); border-radius: 18px;
+  background: rgba(255, 255, 255, .04);
+}
+.footer-hours-title { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: -.01em; color: #E2C48C; }
+.footer-hours-list { display: grid; gap: 9px; margin: 14px 0 0; }
+.footer-hours-list div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 15px; line-height: 1.5; }
+.footer-hours-list dt { color: rgba(255, 255, 255, .78); font-weight: 600; }
+.footer-hours-list dd { margin: 0; color: #fff; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+.footer-hours-list small { margin-left: 4px; font-size: 12px; font-weight: 500; color: rgba(255, 255, 255, .6); }
+.footer-hours-list .is-sub dt, .footer-hours-list .is-sub dd { font-size: 13.5px; font-weight: 500; color: rgba(255, 255, 255, .66); }
+.footer-hours-list .is-off { padding-top: 9px; border-top: 1px solid rgba(255, 255, 255, .1); }
+.footer-hours-list .is-off dd { color: #E2C48C; }
+.footer-hours-note { margin-top: 12px; font-size: 12.5px; color: rgba(255, 255, 255, .6); }
 .footer-info { display: grid; gap: 10px; margin: 26px 0 0; }
 .footer-info div { display: grid; grid-template-columns: 76px 1fr; gap: 12px; font-size: 14px; line-height: 1.55; }
 .footer-info dt { color: rgba(255, 255, 255, .45); }
@@ -807,6 +818,21 @@ html:not(.js) .hl { background-size: 100% 100%; }
   transition: transform .2s var(--ease-out), box-shadow .2s;
 }
 .cta-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+/* 전화기가 따르릉 흔들리고(0.9초) 잠시 쉬기를 반복. 버튼이 화면에 나와 있을 때만 */
+.cta-phone { overflow: visible; filter: drop-shadow(0 1px 2px rgba(60, 40, 10, .35)); }
+.cta-bar.is-visible .cta-phone { animation: phone-ring 2.6s ease-in-out .4s infinite; }
+.cta-bar.is-visible .cta-wave { animation: phone-wave 2.6s ease-out .4s infinite; }
+@keyframes phone-ring {
+  0%, 36%, 100% { transform: rotate(0); }
+  4% { transform: rotate(-16deg); }
+  8% { transform: rotate(14deg); }
+  12% { transform: rotate(-14deg); }
+  16% { transform: rotate(12deg); }
+  20% { transform: rotate(-10deg); }
+  24% { transform: rotate(8deg); }
+  28% { transform: rotate(-4deg); }
+}
+@keyframes phone-wave { 0%, 44%, 100% { opacity: 0; } 6%, 30% { opacity: 1; } }
 .cta-btn:active { transform: scale(.98); }
 @media (hover: hover) {
   .cta-btn:hover { box-shadow: 0 16px 36px rgba(184, 150, 90, .45); }
@@ -919,7 +945,8 @@ html.is-locked { overflow: hidden; }
   .js .stages-bar i, .js .stages-card { opacity: 1; transform: none; transition: none; }
   .js .path-step, .js .path-steps::after { opacity: 1; transform: none; transition: none; }
   .js .path.is-in .path-step.is-goal .path-dot { animation: none; }
-  .consult-cap.is-swap, .js .why-note.is-in .why-map-glow, .interview-play-icon, .lead[open], .lead::backdrop { animation: none; }
+  .consult-cap.is-swap, .js .why-note.is-in .why-map-glow, .interview-play-icon::before, .lead[open], .lead::backdrop { animation: none; }
   .cta-bar, .cta-bar.is-visible, .site-header { transition: none; }
+  .cta-bar.is-visible .cta-phone, .cta-bar.is-visible .cta-wave { animation: none; }
   video.hero-media { display: none; }
 }

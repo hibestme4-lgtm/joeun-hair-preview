@@ -6,6 +6,52 @@
   };
 
   const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hasIO = 'IntersectionObserver' in window;
+
+  // 처음 화면에 들어올 때 한 번 실행 (IntersectionObserver가 없으면 바로)
+  const onceVisible = (el, cb, options) => {
+    if (!hasIO) { cb(); return; }
+    const io = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      io.disconnect();
+      cb();
+    }, options);
+    io.observe(el);
+  };
+  // 화면에 보이는 동안만 is-live를 붙임 (무한 반복 애니메이션은 CSS에서 이때만 돎). 들어오고 나갈 때 onChange
+  const whileVisible = (el, onChange = () => {}, options) => {
+    if (!hasIO) { el.classList.add('is-live'); onChange(true); return; }
+    new IntersectionObserver(([entry]) => {
+      el.classList.toggle('is-live', entry.isIntersecting);
+      onChange(entry.isIntersecting);
+    }, options).observe(el);
+  };
+  // 스크롤 작업은 여기 모아 한 프레임에 한 번만 실행
+  const scrollTasks = [];
+  let scrollQueued = false;
+  window.addEventListener('scroll', () => {
+    if (scrollQueued) return;
+    scrollQueued = true;
+    requestAnimationFrame(() => { scrollQueued = false; scrollTasks.forEach((task) => task()); });
+  }, { passive: true });
+
+  /* 전후 사진은 첫 화면(히어로 그림·글꼴)을 받은 뒤에 받음.
+     화면 아래에 있어도 브라우저가 바로 받기 시작해 첫 화면 그림과 다퉜음 (느린 망 LCP 3.5초 → 1.8초).
+     사진 앞까지 먼저 스크롤하면 그때 바로 받음 */
+  const deferredImgs = [...document.querySelectorAll('img[data-srcset]')];
+  const loadDeferred = () => deferredImgs.splice(0).forEach((img) => {
+    img.srcset = img.dataset.srcset;
+    img.src = img.dataset.src;
+    img.removeAttribute('data-srcset');
+    img.removeAttribute('data-src');
+  });
+  if (deferredImgs.length) {
+    // load = 첫 화면 그림·글꼴까지 다 받은 때 (이 스크립트가 돌 땐 글꼴 요청이 시작 전이라 fonts.ready만으론 너무 이름)
+    if (document.readyState === 'complete') loadDeferred();
+    else window.addEventListener('load', () => setTimeout(loadDeferred, 100), { once: true });
+    setTimeout(loadDeferred, 6000); // load가 늦어져도 6초 뒤엔 받음
+    onceVisible(deferredImgs[0].closest('.ba'), loadDeferred);
+  }
 
   const track = (event, params = {}) => {
     window.dataLayer = window.dataLayer || [];
@@ -53,12 +99,13 @@
       lastY = y;
     }
   };
-  window.addEventListener('scroll', onScroll, { passive: true });
+  scrollTasks.push(onScroll);
   onScroll();
 
-  /* 히어로 등장 */
+  /* 히어로 등장 (말풍선 들썩임은 히어로가 보일 때만) */
   const hero = document.querySelector('.hero');
   requestAnimationFrame(() => hero.classList.add('is-in'));
+  whileVisible(hero);
 
   /* 상담 신청: 하단 고정 버튼(히어로를 지나면 보임) → 팝업(이름·연락처·개인정보 동의) → CLINIC.leadEndpoint */
   const ctaBar = document.querySelector('.cta-bar');
@@ -73,7 +120,7 @@
   const privacyBtn = leadForm.querySelector('.lead-more');
   const privacyBox = document.getElementById('lead-privacy');
 
-  if ('IntersectionObserver' in window) {
+  if (hasIO) {
     new IntersectionObserver(([e]) => {
       ctaBar.classList.toggle('is-visible', !e.isIntersecting && e.boundingClientRect.bottom <= 0);
     }).observe(hero);
@@ -148,9 +195,11 @@
     leadSubmit.disabled = true;
     leadSubmit.textContent = '신청 중…';
     track('lead_submit');
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 10000); // 서버가 답이 없으면 10초 뒤 실패로 처리 ('신청 중…'에 멈추지 않게)
     try {
       if (CLINIC.leadEndpoint) {
-        const res = await fetch(CLINIC.leadEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch(CLINIC.leadEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: ctrl.signal });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
       } else {
         await new Promise((r) => setTimeout(r, 500)); // 데모: 서버 연결 전에는 보내지 않고 완료 화면만
@@ -161,26 +210,21 @@
       track('lead_error');
       leadError.textContent = `신청이 전송되지 않았습니다. 잠시 후 다시 시도하시거나 ${CLINIC.phone}로 전화해 주세요.`;
     } finally {
+      clearTimeout(timer);
       leadSubmit.disabled = false;
       leadSubmit.textContent = '상담 신청하기';
     }
   });
 
   /* 탈모 고민: 스크롤로 각 카드가 화면 아래쪽 1/4 선을 넘으면 등장 + 체크 (누르는 동작 없음) */
-  const worryEls = [...document.querySelectorAll('.worry, .worries-result')];
-  if ('IntersectionObserver' in window && !reduceMotion()) {
-    const wio = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (!e.isIntersecting) return;
-        e.target.classList.add('is-in');
-        wio.unobserve(e.target);
-        if (e.target.classList.contains('worries-result')) track('worries_viewed');
-      });
-    }, { rootMargin: '0px 0px -25% 0px' });
-    worryEls.forEach((el) => wio.observe(el));
-  } else {
-    worryEls.forEach((el) => el.classList.add('is-in'));
-  }
+  document.querySelectorAll('.worry, .worries-result').forEach((el) => {
+    const show = () => {
+      el.classList.add('is-in');
+      if (el.classList.contains('worries-result')) track('worries_viewed');
+    };
+    if (reduceMotion()) show();
+    else onceVisible(el, show, { rootMargin: '0px 0px -25% 0px' });
+  });
 
   /* S02 정상 모발 → 탈모: 스크롤 진행도(0~1)를 --p로 넘겨 그림을 서서히 바꿈 (클릭 없음) */
   const cmpScene = document.querySelector('.cmp-scene');
@@ -204,55 +248,29 @@
     cmpFrame.dataset.state = state;
     cmpSwitch.dataset.state = state;
   };
-  let cmpTick = false;
-  window.addEventListener('scroll', () => {
-    if (cmpTick) return;
-    cmpTick = true;
-    requestAnimationFrame(() => { updateCmp(); cmpTick = false; });
-  }, { passive: true });
+  // 그림 근처(위아래 한 화면 안)에 있을 때만 계산. 멀리 있을 땐 스크롤마다 위치를 재지 않음
+  let cmpNear = false;
+  whileVisible(cmpScene, (near) => { cmpNear = near; updateCmp(); }, { rootMargin: '100% 0px' });
+  scrollTasks.push(() => { if (cmpNear) updateCmp(); });
   window.addEventListener('resize', updateCmp);
   updateCmp();
 
   /* Q 카드: 보이면 민감 부위가 깜빡이고 결론에 형광펜 */
   const whyNote = document.querySelector('.why-note');
-  if ('IntersectionObserver' in window) {
-    const nio = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      whyNote.classList.add('is-in');
-      nio.disconnect();
-    }, { threshold: 0.5 });
-    nio.observe(whyNote);
-  } else {
-    whyNote.classList.add('is-in');
-  }
+  onceVisible(whyNote, () => whyNote.classList.add('is-in'), { threshold: 0.5 });
 
   /* 미리 준비 밴드 등장 */
   const prepare = document.querySelector('.prepare');
-  if ('IntersectionObserver' in window) {
-    const pio = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      prepare.classList.add('is-in');
-      pio.disconnect();
-    }, { threshold: 0.3 });
-    pio.observe(prepare);
-  } else {
-    prepare.classList.add('is-in');
-  }
+  onceVisible(prepare, () => prepare.classList.add('is-in'), { threshold: 0.3 });
 
   /* S03 원장 여정: 화면에 들어오면 선이 그려지며 단계가 차례로 켜짐 */
   const path = document.querySelector('.path');
-  if ('IntersectionObserver' in window && !reduceMotion()) {
-    const jio = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      path.classList.add('is-in');
-      path.closest('.journey').classList.add('is-in');
-      jio.disconnect();
-    }, { threshold: 0.5 });
-    jio.observe(path);
-  } else {
+  const showJourney = () => {
     path.classList.add('is-in');
     path.closest('.journey').classList.add('is-in');
-  }
+  };
+  if (reduceMotion()) showJourney();
+  else onceVisible(path, showJourney, { threshold: 0.5 });
 
   /* S04 맞춤 상담 영상: 보일 때만 재생, 장면(듣기 → 진단 → 설명)에 맞춰 자막·진행 막대 갱신 */
   const consultBox = document.querySelector('.consult-video');
@@ -303,20 +321,20 @@
     cv.load();
   }
   const showControls = () => { cv.controls = true; consultBox.classList.add('has-controls'); };
-  if (reduceMotion() || !('IntersectionObserver' in window)) {
+  if (reduceMotion() || !hasIO) {
     showControls();
   } else {
     let consultSeen = false;
-    new IntersectionObserver(([entry]) => {
+    whileVisible(consultBox, (visible) => {
       if (cv.controls) return;
-      if (entry.isIntersecting) {
+      if (visible) {
         if (!consultSeen) { consultSeen = true; track('consult_video_viewed'); }
         const p = cv.play();
         if (p && p.catch) p.catch(showControls); // 저전력 모드 등으로 자동재생이 막히면 재생 버튼
       } else {
         cv.pause();
       }
-    }, { threshold: 0.5 }).observe(consultBox);
+    }, { threshold: 0.5 });
   }
 
   /* S05 둘러보기: 스크롤 고정 없이 자연스럽게 자동 전환되는 캐러셀 슬라이더 */
@@ -454,16 +472,11 @@
     tourSticky.addEventListener('mouseenter', stopAuto);
     tourSticky.addEventListener('mouseleave', startAuto);
 
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver(([entry]) => {
-        isVisible = entry.isIntersecting;
-        if (isVisible) startAuto();
-        else stopAuto();
-      }, { threshold: 0.15 }).observe(tour);
-    } else {
-      isVisible = true;
-      startAuto();
-    }
+    whileVisible(tour, (visible) => {
+      isVisible = visible;
+      if (visible) startAuto();
+      else stopAuto();
+    }, { threshold: 0.15 });
 
     layoutTour();
     window.addEventListener('resize', layoutTour);
@@ -504,9 +517,8 @@
     const pct = iv.duration ? Math.floor((t / iv.duration) * 4) * 25 : 0; // 25% 단위 시청 기록
     if (pct > 0 && !ivMarks.has(pct)) { ivMarks.add(pct); track('interview_progress', { percent: pct }); }
   });
-  if ('IntersectionObserver' in window) { // 화면 밖으로 완전히 나가면 일시정지
-    new IntersectionObserver(([entry]) => { if (!entry.isIntersecting && !iv.paused) iv.pause(); }, { threshold: 0 }).observe(ivBox);
-  }
+  // 화면 밖으로 완전히 나가면 일시정지 (보이는 동안 is-live: 재생 버튼 고리가 이때만 퍼짐)
+  whileVisible(ivBox, (visible) => { if (!visible && !iv.paused) iv.pause(); }, { threshold: 0 });
 
   /* S07 마지막 멘트: 글자를 한 글자씩 span으로 나눠, 스크롤로 문단이 올라오는 동안 차례로 채움 */
   const closingCopy = document.querySelector('.closing-copy');
@@ -551,27 +563,19 @@
     if (reduceMotion()) {
       chars.forEach((s) => s.classList.add('is-on'));
     } else {
-      let fillTick = false;
-      window.addEventListener('scroll', () => {
-        if (fillTick) return;
-        fillTick = true;
-        requestAnimationFrame(() => { fillClosing(); fillTick = false; });
-      }, { passive: true });
+      let closingNear = false;
+      whileVisible(closingCopy, (near) => { closingNear = near; fillClosing(); }, { rootMargin: '100% 0px' });
+      scrollTasks.push(() => { if (closingNear) fillClosing(); });
       window.addEventListener('resize', fillClosing);
       fillClosing();
     }
   }
 
   /* 전후 사진(정면·정수리 모두 펼쳐 둠): 각각 처음 화면에 들어오면 1회 기록 */
-  if ('IntersectionObserver' in window) {
-    const bio = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (!e.isIntersecting) return;
-        bio.unobserve(e.target);
-        track('ba_viewed', { view: e.target.id.replace('ba-', '') });
-      });
-    }, { threshold: 0.6 });
-    document.querySelectorAll('.ba-panel').forEach((p) => bio.observe(p));
+  if (hasIO) {
+    document.querySelectorAll('.ba-panel').forEach((panel) => {
+      onceVisible(panel, () => track('ba_viewed', { view: panel.id.replace('ba-', '') }), { threshold: 0.6 });
+    });
   }
 
   /* 전후 비교 슬라이더: 세로로 쓸면 스크롤(touch-action: pan-y), 가로로 끌거나 누르면 위치 이동 */
@@ -580,20 +584,33 @@
     const tagBefore = ba.querySelector('.ba-tag-before');
     const tagAfter = ba.querySelector('.ba-tag-after');
     let used = false;
+    // 태그 끝 위치(%)는 한 번만 재 둠: 움직일 때마다 offsetLeft를 읽으면 그때마다 배치를 다시 계산해 버벅임
+    let edges = null;
+    const measure = () => {
+      const w = ba.clientWidth || 1;
+      edges = { before: ((tagBefore.offsetLeft + tagBefore.offsetWidth) / w) * 100, after: (tagAfter.offsetLeft / w) * 100 };
+    };
+    window.addEventListener('resize', () => { edges = null; });
     const set = (pct) => {
       const v = Math.min(100, Math.max(0, pct));
+      if (!edges) measure();
       ba.style.setProperty('--pos', `${v}%`);
-      range.value = String(Math.round(v));
+      ba.dataset.pos = String(Math.round(v)); // range.value는 바꿀 때마다 배치를 다시 계산하므로 손을 뗄 때 syncRange로 한 번만
       // 경계선이 태그를 덮기 시작하면(= 반대쪽 사진이 그 자리를 채우면) 그 태그는 숨김
-      const w = ba.clientWidth || 1;
-      const beforeEdge = ((tagBefore.offsetLeft + tagBefore.offsetWidth) / w) * 100;
-      const afterEdge = (tagAfter.offsetLeft / w) * 100;
-      tagBefore.classList.toggle('is-hidden', v < beforeEdge);
-      tagAfter.classList.toggle('is-hidden', v > afterEdge);
+      tagBefore.classList.toggle('is-hidden', v < edges.before);
+      tagAfter.classList.toggle('is-hidden', v > edges.after);
     };
+    const syncRange = () => { if (ba.dataset.pos) range.value = ba.dataset.pos; }; // 키보드로 이어서 조절할 때 위치가 맞도록
+    let rect = null; // 끄는 동안의 사진 위치 (끄는 중엔 가로로만 움직여 스크롤이 없으므로 시작할 때 한 번만 잼)
     const fromX = (x) => {
-      const r = ba.getBoundingClientRect();
+      const r = rect || ba.getBoundingClientRect();
       set(((x - r.left) / r.width) * 100);
+    };
+    // pointermove는 1초에 120번 넘게 오기도 해서, 마지막 위치만 모아 화면 그릴 때 한 번 반영
+    let pendingX = null;
+    const queueX = (x) => {
+      if (pendingX === null) requestAnimationFrame(() => { fromX(pendingX); pendingX = null; });
+      pendingX = x;
     };
     const markUsed = () => {
       if (used) return;
@@ -605,6 +622,7 @@
     ba.addEventListener('pointerdown', (e) => {
       touched = true;
       start = { x: e.clientX, y: e.clientY, moved: false, id: e.pointerId };
+      rect = ba.getBoundingClientRect();
     });
     ba.addEventListener('pointermove', (e) => {
       if (!start || e.pointerId !== start.id) return;
@@ -612,17 +630,19 @@
         start.moved = true;
         ba.setPointerCapture(e.pointerId);
       }
-      if (start.moved) { fromX(e.clientX); markUsed(); }
+      if (start.moved) { queueX(e.clientX); markUsed(); }
     });
     ba.addEventListener('pointerup', (e) => {
       if (start && !start.moved) { fromX(e.clientX); markUsed(); } // 짧게 누르면 그 위치로
       start = null;
+      rect = null;
+      requestAnimationFrame(syncRange); // 대기 중인 마지막 위치가 반영된 뒤
     });
-    ba.addEventListener('pointercancel', () => { start = null; });
+    ba.addEventListener('pointercancel', () => { start = null; rect = null; syncRange(); });
     range.addEventListener('input', () => { touched = true; set(Number(range.value)); markUsed(); });
 
     // 처음 보일 때 한 번 좌우로 움직여 끌 수 있다는 걸 알려 줌 (만지면 멈춤)
-    if (!reduceMotion() && 'IntersectionObserver' in window) {
+    if (!reduceMotion() && hasIO) {
       const tween = (from, to, ms) => new Promise((resolve) => {
         const t0 = performance.now();
         const step = (now) => {
@@ -635,15 +655,13 @@
         };
         requestAnimationFrame(step);
       });
-      const hint = new IntersectionObserver(async ([entry]) => {
-        if (!entry.isIntersecting) return;
-        hint.disconnect();
+      onceVisible(ba, async () => {
         await new Promise((r) => setTimeout(r, 400));
         await tween(50, 25, 500);
         await tween(25, 75, 800);
         await tween(75, 50, 500);
+        syncRange();
       }, { threshold: 0.6 });
-      hint.observe(ba);
     }
   });
 
@@ -651,29 +669,28 @@
   const arch = document.querySelector('.hero-arch');
   const video = arch.querySelector('video');
   const still = arch.querySelector('.hero-still');
-  const reduce = { matches: reduceMotion() };
   const useAnimatedWebp = () => {
     arch.classList.add('no-video');
     video.removeAttribute('autoplay');
     video.pause();
     still.src = 'videos/hero-character-loop.webp';
   };
-  if (reduce.matches) {
+  if (reduceMotion()) {
     video.remove();
   } else {
     const tryPlay = () => {
       const p = video.play();
       if (p && p.catch) p.catch(useAnimatedWebp);
     };
-    video.addEventListener('error', useAnimatedWebp, true);
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver(([entry]) => {
-        if (arch.classList.contains('no-video')) return;
-        if (entry.isIntersecting) tryPlay();
-        else video.pause();
-      }, { threshold: 0.1 }).observe(arch);
-    } else {
-      tryPlay();
-    }
+    // <source>는 형식마다 따로 error가 남. 앞의 webm만 못 트는 브라우저(구형 iOS 등)는 mp4로 넘어가야 하므로
+    // 마지막 형식까지 실패했을 때만 대체 (전에는 webm 실패만으로 312KB 애니메이션 webp로 바뀌었음)
+    const sources = video.querySelectorAll('source');
+    sources[sources.length - 1].addEventListener('error', useAnimatedWebp);
+    if (video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) useAnimatedWebp(); // 이 코드보다 먼저 다 실패한 경우
+    whileVisible(arch, (visible) => {
+      if (arch.classList.contains('no-video')) return;
+      if (visible) tryPlay();
+      else video.pause();
+    }, { threshold: 0.1 });
   }
 })();
