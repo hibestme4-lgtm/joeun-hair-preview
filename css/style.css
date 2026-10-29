@@ -105,7 +105,7 @@ h1, p { margin: 0; }
   background: radial-gradient(circle, rgba(184, 150, 90, .22), rgba(184, 150, 90, 0) 68%);
   pointer-events: none;
 }
-.hero-chip, .consult-chip, .tour-chip {
+.hero-chip, .consult-chip, .tour-chip, .closing-chip {
   display: inline-flex; align-items: center;
   height: 32px; padding: 0 16px;
   border: 1px solid rgba(184, 150, 90, .4);
@@ -760,6 +760,19 @@ html:not(.js) .hl { background-size: 100% 100%; }
 }
 
 /* ── 푸터 ───────────────────────────── */
+/* ── S07 마지막 멘트 (스크롤 글자 채우기) ── */
+.closing { padding: 96px var(--gutter) 104px; background: var(--bg); text-align: center; }
+/* 크기 3단계: 제목 30 > 맺음말 21 > 설명 18. 금색은 "남아 있는"·"조은의원" 두 곳만 */
+.closing-copy { margin-top: 26px; }
+.closing-title { margin: 0; font-size: 30px; line-height: 1.4; font-weight: 800; letter-spacing: -.035em; color: var(--text); }
+.closing-light { display: inline-block; margin-bottom: 8px; font-size: 20px; font-weight: 400; letter-spacing: -.03em; color: var(--muted); }
+.closing-gold { color: var(--gold-deep); }
+.closing-desc { margin-top: 22px; font-size: 18px; line-height: 1.7; font-weight: 400; letter-spacing: -.025em; color: var(--muted); }
+.closing-sign { margin-top: 40px; font-size: 21px; line-height: 1.5; font-weight: 700; letter-spacing: -.03em; color: var(--text); }
+.closing-sign b { font-weight: 800; color: var(--gold-deep); }
+.js [data-fill] .fill-ch { transition: color .3s ease-out; }
+.js [data-fill] .fill-ch:not(.is-on) { color: #DDD5C9; } /* 아직 안 채워진 글자 */
+
 .site-footer {
   padding: 40px var(--gutter) calc(36px + var(--cta-h) + env(safe-area-inset-bottom)); /* 하단 고정 버튼에 가리지 않게 */
   background: var(--text); color: #fff;

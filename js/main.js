@@ -508,6 +508,60 @@
     new IntersectionObserver(([entry]) => { if (!entry.isIntersecting && !iv.paused) iv.pause(); }, { threshold: 0 }).observe(ivBox);
   }
 
+  /* S07 마지막 멘트: 글자를 한 글자씩 span으로 나눠, 스크롤로 문단이 올라오는 동안 차례로 채움 */
+  const closingCopy = document.querySelector('.closing-copy');
+  if (closingCopy) {
+    const chars = [];
+    closingCopy.querySelectorAll('[data-fill]').forEach((el) => {
+      const read = el.cloneNode(true);
+      read.querySelectorAll('br').forEach((br) => br.replaceWith(' '));
+      const label = Object.assign(document.createElement('span'), { className: 'visually-hidden', textContent: read.textContent });
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      const texts = [];
+      while (walker.nextNode()) texts.push(walker.currentNode);
+      texts.forEach((node) => {
+        const frag = document.createDocumentFragment();
+        [...node.textContent].forEach((ch) => {
+          if (/\s/.test(ch)) { frag.append(ch); return; }
+          const s = Object.assign(document.createElement('span'), { className: 'fill-ch', textContent: ch });
+          s.setAttribute('aria-hidden', 'true'); // 화면 낭독기는 한 글자씩 끊어 읽지 않도록 label을 읽음
+          chars.push(s);
+          frag.append(s);
+        });
+        node.replaceWith(frag);
+      });
+      el.append(label);
+    });
+    let lit = -1;
+    let closingSeen = false;
+    const fillClosing = () => {
+      const r = closingCopy.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const atBottom = window.scrollY + vh >= document.documentElement.scrollHeight - 4; // 화면이 낮아 끝 지점까지 못 올라와도 끝까지 채움
+      // 문단 윗변이 화면 85%에 닿으면 시작, 문단 전체가 화면 80% 위로 올라오면 다 채움 (반쯤 빈 채로 멈춰 보이지 않게)
+      const start = vh * 0.85;
+      const end = vh * 0.8 - r.height;
+      const p = atBottom ? 1 : Math.min(1, Math.max(0, (start - r.top) / (start - end)));
+      const n = Math.round(p * chars.length);
+      if (n === lit) return;
+      lit = n;
+      chars.forEach((s, k) => s.classList.toggle('is-on', k < n));
+      if (n === chars.length && !closingSeen) { closingSeen = true; track('closing_viewed'); }
+    };
+    if (reduceMotion()) {
+      chars.forEach((s) => s.classList.add('is-on'));
+    } else {
+      let fillTick = false;
+      window.addEventListener('scroll', () => {
+        if (fillTick) return;
+        fillTick = true;
+        requestAnimationFrame(() => { fillClosing(); fillTick = false; });
+      }, { passive: true });
+      window.addEventListener('resize', fillClosing);
+      fillClosing();
+    }
+  }
+
   /* 전후 사진(정면·정수리 모두 펼쳐 둠): 각각 처음 화면에 들어오면 1회 기록 */
   if ('IntersectionObserver' in window) {
     const bio = new IntersectionObserver((entries) => {
