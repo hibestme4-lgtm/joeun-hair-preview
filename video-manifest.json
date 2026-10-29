@@ -1,0 +1,118 @@
+{
+  "inbox": "../영상_원본",
+  "outputDir": "videos",
+  "generator": {
+    "tool": "Higgsfield MCP",
+    "model": "seedance_2_5",
+    "mode": "omni_reference",
+    "generate_audio": false
+  },
+  "encode": {
+    "script": "scripts/encode-loop-clip.mjs",
+    "width": 480,
+    "fps": 12,
+    "formats": [
+      "webm",
+      "mp4",
+      "webp (animated fallback)",
+      "poster webp"
+    ]
+  },
+  "clips": [
+    {
+      "id": "hero-character-loop",
+      "approved": true,
+      "approvedBy": "user, 2026-10-25 (히어로 캐릭터를 Seedance 2.5로 약간 움직이게, 짤처럼 최적화)",
+      "section": "S01 hero arch",
+      "frame": "../이미지_원본/hero-character.png",
+      "frameSource": "Codex CLI built-in GPT image tool (model name not exposed; user asked for 'astra'), reference: 조은의원_탈모_상세페이지 s06-character",
+      "aspect_ratio": "3:4",
+      "duration": 4,
+      "resolution": "480p draft",
+      "credits": 12,
+      "job_id": "c2df2b94-6ddd-4b3a-8190-c515aafc7b5d",
+      "prompt": "Seamless gentle loop of a soft 3D clay chibi boy. Locked-off static camera, no zoom, no pan. He looks at the small amber pill bottle in his hand, blinks once, tilts his head slightly to the side with a puzzled look, lightly scratches the top of his head with his other hand twice, then settles back exactly into the starting pose. Small, subtle, cute movements only; body stays centered. The bottle stays in his hand and keeps no label. Background stays a flat warm ivory with a soft gold glow, unchanged. No text, no new objects, no camera shake."
+    },
+    {
+      "id": "s02-follicle",
+      "approved": true,
+      "approvedBy": "user, 2026-10-25 (호르몬 영향으로 털이 빠지는 짧은 영상 요청)",
+      "section": "S02 why-frame",
+      "playback": "play once when visible, hold last frame, replay button (no auto loop: reversing could read as regrowth)",
+      "startFrame": "../이미지_원본/s02-follicle-healthy.png",
+      "endFrame": "../이미지_원본/s02-follicle-thin.png",
+      "frameSource": "Codex CLI built-in GPT image tool (model name not exposed), style ref: user screenshot 23",
+      "aspect_ratio": "1:1",
+      "duration": 6,
+      "resolution": "480p draft",
+      "credits": 18,
+      "job_id": "0a38ecf7-7190-4095-9ed5-fc175fcb584f",
+      "encode": "--fps 15 --once --grade curves (Seedance drifted background to peach #E2C6B1; lifted toward ivory)",
+      "prompt": "Clean 3D medical explainer animation of a scalp skin cross-section block. Locked-off static camera, no zoom, no rotation; the skin block, fat layer, capillaries and ivory background stay perfectly still. 0-2s: tiny softly glowing warm-gold particles (hormone) travel along the red capillaries and gather around the hair bulb at the root. 2-4s: the gold particles cling to the bulb, the bulb gradually shrinks and rises higher in the skin, the thick dark hair loosens and slides upward out of the skin and floats away out of frame. 4-6s: from the now smaller follicle a new thin, short, light-brown hair slowly grows out, ending exactly on the final frame. Smooth, calm, educational, not gory. No text, no labels, no arrows."
+    },
+    {
+      "id": "consult",
+      "approved": true,
+      "approvedBy": "user, 2026-10-28 (실제 상담 촬영본 사용, 환자 역할 촬영 동의 완료); 2026-10-29 레이저 장면 추가 요청",
+      "section": "S04 맞춤 상담 .consult-video",
+      "source": "../영상_원본/consult-source.mp4 + ../영상_원본/laser-source.mp4 (병원 제공 실사 촬영본, AI 생성 아님) 3840x2160 59.94fps",
+      "edit": "상담 B(1.85-5.15s 듣기, crop x1310) → C(5.17-7.99s 진단, x1160) → A(0-1.82s 설명, x1160) → 레이저 넓은 장면(0.4-3.0s, x950) → 레이저 가까운 장면(5.6-7.6s, x739), 각 1728x2160(4:5) + 장비 시술 AI 장면(treatment-device) 7.97-11.97s를 설명 뒤·레이저 앞에 삽입",
+      "sceneBoundsInOutput": [
+        3.3,
+        6.13,
+        7.97,
+        11.97
+      ],
+      "outputs": [
+        "videos/consult.mp4 (720x900 30fps crf27, 16.6s, 1.1MB)",
+        "videos/consult-480.mp4 (480x600 crf28, 489KB)",
+        "videos/consult-poster.webp"
+      ],
+      "audio": "제거"
+    },
+    {
+      "id": "treatment-device",
+      "approved": true,
+      "approvedBy": "user, 2026-10-29 (탈모장비시술 사진을 Seedance 2.5로 시술 움직임 5초 영상, 상담 영상에 넣기)",
+      "section": "S04 consult-video 4번째 장면",
+      "frame": "../영상_원본/treatment-device-frame-3x4.png (원본 ../이미지_원본/treatment-device-source.png 1672x941에서 x175 705x941 자름, 병원 실사)",
+      "tool": "Higgsfield MCP",
+      "model": "seedance_2_5",
+      "mode": "omni_reference",
+      "aspect_ratio": "3:4",
+      "duration": 5,
+      "resolution": "480p draft (1080p 확정 가능, 7일 이내)",
+      "credits": 15,
+      "generate_audio": false,
+      "job_id": "ad5f89c9-e28b-429f-908b-8411e8922920",
+      "raw": "../영상_원본/treatment-device-raw.mp4 (560x752 24fps hevc)",
+      "use": "0.3-4.3s, 4:5로 자른 뒤 consult.mp4 7.97-11.97s에 들어감",
+      "disclosure": "영상 위 \"AI 영상 · 실제 사진 기반\" 표시(해당 장면만) + 영상 아래 고지",
+      "prompt": "Realistic clinic footage, same scene as the start image. Locked-off static camera ... gloved left hand parts hair, right hand glides the blue-tip device in small strokes ... No new objects, no text, no extra hands, no face reveal."
+    },
+    {
+      "id": "interview",
+      "approved": true,
+      "approvedBy": "user, 2026-10-29 (탈모인터뷰 주영주원장님 인터뷰 최종안을 섹션으로)",
+      "section": "S06 interview",
+      "source": "Desktop/조은의원 유튜브/탈모인터뷰 주영주원장님 인터뷰 최종안.mp4 (3840x2160 29.97fps 5:46.9, 761MB, 병원 실사 인터뷰). 원본이 커서 프로젝트에는 복사하지 않음",
+      "subtitles": "../영상_원본/interview-subtitles.txt (최종자막.txt, 초안 기준 시간)",
+      "outputs": [
+        "videos/interview.mp4 (1280x720 crf26 maxrate 1.8M, AAC 96k, 23MB, faststart, preload=none)",
+        "videos/interview-poster.webp (30.2s, 1280x720)",
+        "videos/interview-poster-640.webp"
+      ],
+      "audio": "있음 (누르면 재생)",
+      "chapters": {
+        "0:47": "원장님도 탈모였나요?",
+        "1:57": "어떻게 극복하셨나요?",
+        "2:20": "언제 치료를 받아야 하나요?",
+        "2:47": "탈모약만 먹으면 안 되나요?",
+        "3:08": "어떤 검사를 하나요?",
+        "3:22": "맞춤 치료는 무엇이 다른가요?",
+        "3:49": "오히려 머리가 빠지나요?",
+        "4:42": "평생 관리해야 하나요?"
+      }
+    }
+  ]
+}
